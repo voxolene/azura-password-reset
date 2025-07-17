@@ -43,7 +43,7 @@
 <body>
     <div class="reset-container">
         <h2 class="text-center mb-4">Reset Your Password</h2>
-        <form id="passwordResetForm">
+        <form id="passwordResetForm" class="d-none">
             <div class="form-floating mb-3">
                 <input type="password" class="form-control" id="newPassword" placeholder="New Password" required>
                 <label for="newPassword">New Password</label>
@@ -77,28 +77,22 @@
         }
 
         async function ensureSession() {
-            const query = window.location.search;
-            if (query.includes("code=")) {
-                const { data, error } = await client.auth.exchangeCodeForSession(query);
-                if (error) {
-                    console.error("Session exchange failed:", error);
-                    showMessage("Invalid or expired reset link. Please request a new one.", true);
-                    passwordResetForm.style.display = 'none';
-                    return false;
-                }
-                console.log("Session restored:", data);
-                return true;
+            try {
+                console.log("🔄 Exchanging code for session:", window.location.search);
+                const { error } = await client.auth.exchangeCodeForSession(window.location.search);
+                if (error) throw error;
+                console.log("✅ Session restored successfully");
+                passwordResetForm.classList.remove('d-none');
+            } catch (err) {
+                console.error("❌ Session exchange failed:", err);
+                showMessage("Invalid or expired reset link. Please request a new one.", true);
             }
-            showMessage("Invalid reset link. Missing code.", true);
-            passwordResetForm.style.display = 'none';
-            return false;
         }
 
         ensureSession();
 
         passwordResetForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-
             const newPassword = newPasswordInput.value;
             const confirmPassword = confirmPasswordInput.value;
 
