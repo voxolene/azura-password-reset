@@ -103,13 +103,17 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            accessToken = getAccessTokenFromUrl();
-            if (!accessToken) {
-                showMessage('Invalid or missing password reset token. Please try resetting your password again.', true);
-                passwordResetForm.style.display = 'none';
+        // Removed DOMContentLoaded listener for this part, as it's not strictly necessary for initial token grab
+        // when the script is at the end of body and executed synchronously.
+        accessToken = getAccessTokenFromUrl(); // Get token as soon as possible
+        if (!accessToken) {
+            showMessage('Invalid or missing password reset token. Please try resetting your password again.', true);
+            // Hide the form immediately if no token
+            if (passwordResetForm) { // Check if element exists before trying to modify style
+                 passwordResetForm.style.display = 'none';
             }
-        });
+        }
+
 
         passwordResetForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -156,7 +160,10 @@
                 passwordResetForm.style.display = 'none';
 
                 setTimeout(() => {
-                    // window.location.href = 'azuraapp://login'; // Optional redirect back to app
+                    // Optional: Redirect to login page after a few seconds
+                    // window.location.href = 'azuraapp://login'; // Replace with your app's login deep link
+                    // Or redirect to a login page on your website
+                    // window.location.href = 'https://yourwebsite.com/login';
                 }, 3000);
 
             } catch (error) {
