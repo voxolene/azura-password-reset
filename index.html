@@ -60,7 +60,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // ✅ Fix: Extract createClient from the global `supabase` object
+        // ✅ Correctly extract createClient from the global supabase object
         const { createClient } = supabase;
         const client = createClient(
             'https://rosxossqvrisnemjyuaj.supabase.co',
@@ -112,13 +112,21 @@
             submitButton.textContent = 'Resetting...';
 
             try {
-                await client.auth.setSession({
-                    access_token: accessToken,
-                    refresh_token: accessToken
-                });
+                // ✅ Handle Supabase "code" vs "access_token"
+                if (window.location.search.includes('code=')) {
+                    const code = new URLSearchParams(window.location.search).get('code');
+                    const { data, error } = await client.auth.exchangeCodeForSession(code);
+                    if (error) throw error;
+                    console.log("Session obtained:", data.session);
+                } else {
+                    const { error: sessionError } = await client.auth.setSession({
+                        access_token: accessToken,
+                        refresh_token: accessToken
+                    });
+                    if (sessionError) throw sessionError;
+                }
 
                 const { error } = await client.auth.updateUser({ password: newPassword });
-
                 if (error) throw error;
 
                 showMessage('Your password has been successfully reset!', false);
